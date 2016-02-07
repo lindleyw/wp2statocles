@@ -109,7 +109,8 @@ my $site = {
                                             },
                                   'base_url' => 'http://www.~~~.com/',  # take from WP
                                   'title' => '~~~',                     #   "   "
-                                  'theme' => 'site/theme',              # ~~~ TODO: Option of $ref:theme; or: What is a reasonable default?
+                                  'theme' => { '$ref' => 'theme' },
+                                             # 'site/theme',            # ~~~ TODO: or: What is a reasonable default?
                                   'index' => '/page',
                                   'nav' => {
                                             'main' => [                 # TODO: Take from WP, possibly add others?
@@ -132,7 +133,7 @@ my $site = {
             'theme' => {
                         'class' => 'Statocles::Theme',
                         'args' => {
-                                   'store' => 'theme'
+                                   'store' => '::default'
                                   }
                        },
             'page_app' => {
