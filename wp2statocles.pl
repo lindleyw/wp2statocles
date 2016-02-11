@@ -23,6 +23,7 @@ use warnings;
 use strict;
 
 use HTML::TreeBuilder;
+use HTML::Element;
 
 sub rectify_html {
     # WordPress uses a variant of HTML in which blank lines indicate
@@ -31,12 +32,12 @@ sub rectify_html {
     # We also ensure that comments in the HTML are retained.
 
     my $munged_text = shift;
-    $munged_text =~ s/\n\s*\n/\n<p>/g;
 
     my @pre_segments;  # Stash for the <pre> blocks.
     my $seg_id=0;      # Number each block.
     $munged_text =~ s{<pre\b(.*?)>(.*?)</pre\s*>}
                      {$pre_segments[++$seg_id]=$2; "<pre data-seg=\"$seg_id\"$1></pre>";}gsex;
+    $munged_text =~ s/\n\s*\n/\n<p>/g;
 
     my $atree = HTML::TreeBuilder->new();
 
@@ -48,7 +49,8 @@ sub rectify_html {
 
     # Replace original text contents for <pre> elements
     foreach my $pre_element ($atree->look_down('_tag', 'pre')) {
-	$pre_element->push_content($pre_segments[$pre_element->attr('data-seg')]);
+        # Push as literal text, already having &quot; style quotes
+	$pre_element->push_content(HTML::Element->new('~literal','text' => $pre_segments[$pre_element->attr('data-seg')]));
 	$pre_element->attr('data-seg',undef);
     }
 
