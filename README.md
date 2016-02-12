@@ -22,3 +22,7 @@ but the universe of all possible WP sites is huge.
 Here we simply handle the contents of the common variety posts and pages.
 No attempt is made at making compatible URLs for Posts. 
 Rather, they are normalized to the Statocles standard /blog/YYYY/MM/DD/post_name
+
+NOTE: This currently prepends the title to each post/page created, to work
+around a [bug in HTML::FormatMarkdown](https://rt.cpan.org/Public/Bug/Display.html?id=111783)
+
