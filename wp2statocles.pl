@@ -60,8 +60,8 @@ sub rectify_html {
     	# double-quote % signs in <pre> to prevent Mojo template from seeing
     	$segment_text =~ s/<%/<%%/g;
 
-        # Quoting of leading % to \% here is unnecessary; already handled by the Markdown logic
-        # $segment_text =~ s/^(\s*)%/$1%%/gm;
+        # Quote leading % to %%
+        $segment_text =~ s/^(\s*)%/$1%%/gm;
 
         # http://daringfireball.net/projects/markdown/syntax#autoescape
         # − "inside Markdown code spans and blocks, angle brackets and
