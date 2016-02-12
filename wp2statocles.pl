@@ -50,11 +50,24 @@ sub rectify_html {
     # Replace original text contents for <pre> elements
     foreach my $pre_element ($atree->look_down('_tag', 'pre')) {
     	my $segment_text = $pre_segments[$pre_element->attr('data-seg')];
+
+        # These transformations are not guaranteed to make applesauce of your
+        # text, particularly if you have e.g., "&amp;amp;" or such things
+        $segment_text =~ s/&lt;/</g;
+        $segment_text =~ s/&gt;/>/g;
+        $segment_text =~ s/&amp;/&/g;
+
     	# double-quote % signs in <pre> to prevent Mojo template from seeing
-    	$segment_text =~ s/^(\s*[<]?)%/$1%%/gm;
     	$segment_text =~ s/<%/<%%/g;
-        # Push as literal text, already having &quot; style quotes
-	$pre_element->push_content(HTML::Element->new('~literal','text' => $segment_text));
+
+        # Quoting of leading % to \% here is unnecessary; already handled by the Markdown logic
+        # $segment_text =~ s/^(\s*)%/$1%%/gm;
+
+        # http://daringfireball.net/projects/markdown/syntax#autoescape
+        # − "inside Markdown code spans and blocks, angle brackets and
+        # ampersands are always encoded automatically."
+        $pre_element->push_content($segment_text);
+
 	$pre_element->attr('data-seg',undef);
     }
 
