@@ -49,8 +49,12 @@ sub rectify_html {
 
     # Replace original text contents for <pre> elements
     foreach my $pre_element ($atree->look_down('_tag', 'pre')) {
+    	my $segment_text = $pre_segments[$pre_element->attr('data-seg')];
+    	# double-quote % signs in <pre> to prevent Mojo template from seeing
+    	$segment_text =~ s/^(\s*[<]?)%/$1%%/gm;
+    	$segment_text =~ s/<%/<%%/g;
         # Push as literal text, already having &quot; style quotes
-	$pre_element->push_content(HTML::Element->new('~literal','text' => $pre_segments[$pre_element->attr('data-seg')]));
+	$pre_element->push_content(HTML::Element->new('~literal','text' => $segment_text));
 	$pre_element->attr('data-seg',undef);
     }
 
