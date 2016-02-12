@@ -300,10 +300,11 @@ foreach my $post (@{$posts}) {
             next;
         }
 
-        # To avoid a bug in HTML::FormatMarkdown, and as a possible convenience, prepend the post's title
-        my $content = "<h1>$post_info{title}</h1>" . $post->{'content:encoded'}[0];
+        # To avoid a bug in HTML::FormatMarkdown, prepend cipher
+        my $cipher = '~~1~~';
+        my $content = $cipher . $post->{'content:encoded'}[0];
         $content = HTML::FormatMarkdown->format_string(rectify_html($content));
-        $content =~ s/^(\s*)[%]/$1\\%/gm; # Quote leading %-signs to suppress EP-template processing
+        $content =~ s/$cipher//;  # And remove it after 
 
         $pages{$create_path} = {
                                 path => $new_path,
