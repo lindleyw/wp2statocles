@@ -22,8 +22,7 @@ use v5.20;
 use warnings;
 use strict;
 
-use HTML::TreeBuilder;
-use HTML::Element;
+use Mojo::DOM;
 
 sub rectify_html {
     # WordPress uses a variant of HTML in which blank lines indicate
@@ -39,39 +38,24 @@ sub rectify_html {
                      {$pre_segments[++$seg_id]=$2; "<pre data-seg=\"$seg_id\"$1></pre>";}gsex;
     $munged_text =~ s/\n\s*\n/\n<p>/g;
 
-    my $atree = HTML::TreeBuilder->new();
+    my $atree = Mojo::DOM->new("<html><body>$munged_text</body></html>");
+    $atree->find('pre')->each(
+                              sub {
+                                  my $segment_text = $pre_segments[$_->attr('data-seg')];
 
-    # Prepare to store comments, for which HTML::TreeBuilder requires wrapping in <html><body>
-    $atree->store_comments(1);
-    $atree->p_strict(1);  # ensure things like multi-paragraph blockquotes get properly nested
+                                  # double-quote % signs in <pre> to
+                                  # prevent Mojo template from seeing
+                                  $segment_text =~ s/<%/<%%/g;
 
-    $atree->parse("<html><body>$munged_text</body></html>");
+                                  # Quote leading % to %%
+                                  $segment_text =~ s/^(\s*)%/$1%%/gm;
 
-    # Replace original text contents for <pre> elements
-    foreach my $pre_element ($atree->look_down('_tag', 'pre')) {
-    	my $segment_text = $pre_segments[$pre_element->attr('data-seg')];
+                                  # Restore content
+                                  $_->append_content($segment_text);
+                                  delete $_->attr->{'data-seg'};
+                              });
 
-        # These transformations are not guaranteed to make applesauce of your
-        # text, particularly if you have e.g., "&amp;amp;" or such things
-        $segment_text =~ s/&lt;/</g;
-        $segment_text =~ s/&gt;/>/g;
-        $segment_text =~ s/&amp;/&/g;
-
-    	# double-quote % signs in <pre> to prevent Mojo template from seeing
-    	$segment_text =~ s/<%/<%%/g;
-
-        # Quote leading % to %%
-        $segment_text =~ s/^(\s*)%/$1%%/gm;
-
-        # http://daringfireball.net/projects/markdown/syntax#autoescape
-        # − "inside Markdown code spans and blocks, angle brackets and
-        # ampersands are always encoded automatically."
-        $pre_element->push_content($segment_text);
-
-	$pre_element->attr('data-seg',undef);
-    }
-
-    return $atree->as_HTML(undef, ' ', {});   # Convert object tree back to simple string
+    return $atree->to_string;
 }
 
 ###############
