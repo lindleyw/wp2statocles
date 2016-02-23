@@ -39,21 +39,19 @@ sub rectify_html {
     $munged_text =~ s/\n\s*\n/\n<p>/g;
 
     my $atree = Mojo::DOM->new("<html><body>$munged_text</body></html>");
-    $atree->find('pre')->each(
-                              sub {
-                                  my $segment_text = $pre_segments[$_->attr('data-seg')];
+    for my $e ($atree->find('pre')->each) {
+        my $segment_text = $pre_segments[$e->attr('data-seg')];
 
-                                  # double-quote % signs in <pre> to
-                                  # prevent Mojo template from seeing
-                                  $segment_text =~ s/<%/<%%/g;
+        # double-quote % signs in <pre> to prevent Mojo template from seeing
+        $segment_text =~ s/<%/<%%/g;
 
-                                  # Quote leading % to %%
-                                  $segment_text =~ s/^(\s*)%/$1%%/gm;
+        # Quote leading % to %%
+        $segment_text =~ s/^(\s*)%/$1%%/gm;
 
-                                  # Restore content
-                                  $_->append_content($segment_text);
-                                  delete $_->attr->{'data-seg'};
-                              });
+        # Restore content
+        $e->append_content($segment_text);
+        delete $e->attr->{'data-seg'};
+    }
 
     return $atree->to_string;
 }
